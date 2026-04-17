@@ -1,0 +1,4 @@
+2026-04-17 15:20:53,505 INFO request_id=0f3c2364-3bb6-48c4-ac76-24f746a8b633 query=How do I investigate repeated SSH failures? source_count=0 status=success
+2026-04-17 15:41:43,458 INFO request_id=9a1b5ecd-86a5-45f7-8f1f-72138b87e7a6 query=How do I investigate repeated SSH failures? source_count=3 status=success
+2026-04-17 15:44:51,216 INFO request_id=4abb4baf-e4be-406c-9004-b6c58fc035ae query=How do I investigate repeated SSH failures? source_count=3 sources=['ssh_bruteforce.md', 'ssh_bruteforce.md', 'suspicious_outbound_traffic.md'] status=success
+{"timestamp": "2026-04-17T14:49:46.593350Z", "request_id": "1bc578a6-58e0-4acf-b96e-95fc2c53f342", "query": "How do I investigate repeated SSH failures?", "source_count": 3, "sources": ["ssh_bruteforce.md", "ssh_bruteforce.md", "suspicious_outbound_traffic.md"], "status": "success"}
