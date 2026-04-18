@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Secure AI Payment Chatbot</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #ececec;
+            color: #1f1f1f;
+        }
+
+        .container {
+            max-width: 820px;
+            margin: 28px auto;
+            background: #f7f7f7;
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+        }
+
+        h2 {
+            margin: 0 0 18px 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .quick-actions button {
+            border: none;
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 12px 18px;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+
+        .quick-actions button:hover {
+            background: #f0f0f0;
+            transform: translateY(-1px);
+        }
+
+        .chat-box {
+            height: 520px;
+            overflow-y: auto;
+            border: 1px solid #cfcfcf;
+            border-radius: 14px;
+            background: #ffffff;
+            padding: 18px;
+            margin-bottom: 16px;
+        }
+
+        .message {
+            margin: 14px 0;
+            padding: 14px 16px;
+            border-radius: 16px;
+            max-width: 88%;
+            line-height: 1.65;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        .user-message {
+            margin-left: auto;
+            background: #e8eeff;
+            color: #1e40d0;
+        }
+
+        .bot-message {
+            margin-right: auto;
+            background: #eef7ee;
+            color: #1f6d2a;
+            border-left: 4px solid #2f7d32;
+        }
+
+        .message-role {
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .message-content {
+            font-size: 15px;
+        }
+
+        .section-title {
+            font-weight: 700;
+            margin-top: 10px;
+            margin-bottom: 4px;
+            color: #174f22;
+        }
+
+        .section-gap {
+            height: 10px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .input-row input {
+            flex: 1;
+            padding: 16px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: 1px solid #bdbdbd;
+            outline: none;
+            background: white;
+        }
+
+        .input-row input:focus {
+            border-color: #8ea2ff;
+        }
+
+        .input-row button {
+            min-width: 92px;
+            border: 1px solid #bdbdbd;
+            background: white;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0 18px;
+        }
+
+        .input-row button:hover {
+            background: #f0f0f0;
+        }
+
+        .typing-note {
+            color: #777;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 12px;
+                padding: 16px;
+            }
+
+            .chat-box {
+                height: 460px;
+            }
+
+            .message {
+                max-width: 94%;
+            }
+
+            .input-row {
+                flex-direction: column;
+            }
+
+            .input-row button {
+                height: 48px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>💳 Payment Support Chatbot</h2>
+
+        <div class="quick-actions">
+            <button onclick="sendQuick('i forgot my password')">🔑 Reset Password</button>
+            <button onclick="sendQuick('otp not received')">📩 OTP Issue</button>
+            <button onclick="sendQuick('my transfer is pending')">💸 Transfer Issue</button>
+            <button onclick="sendQuick('my card is missing')">🔒 Block Card</button>
+            <button onclick="sendQuick('i saw a transaction i did not make')">⚠️ Report Fraud</button>
+            <button onclick="sendQuick('how to download statement')">📄 Download Statement</button>
+            <button onclick="sendQuick('clear memory')">🧠 Clear Memory</button>
+        </div>
+
+        <div class="chat-box" id="chatBox"></div>
+
+        <div class="input-row">
+            <input
+                type="text"
+                id="userInput"
+                placeholder="Ask your question..."
+                onkeydown="handleKey(event)"
+            />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+
+        <div class="typing-note">Try: my card is missing → what should i do next</div>
+    </div>
+
+    <script>
+        function getSessionId() {
+            let sessionId = localStorage.getItem("chat_session_id");
+
+            if (!sessionId) {
+                sessionId = "session_" + Math.random().toString(36).slice(2) + Date.now();
+                localStorage.setItem("chat_session_id", sessionId);
+            }
+
+            return sessionId;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement("div");
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatMessage(text) {
+            let safe = escapeHtml(text);
+
+            safe = safe.replace(/\*\*(.*?)\*\*/g, "<div class='section-title'>$1</div>");
+            safe = safe.replace(/\n\n/g, "<div class='section-gap'></div>");
+            safe = safe.replace(/\n/g, "<br>");
+
+            return safe;
+        }
+
+        function addMessage(text, sender) {
+            const chatBox = document.getElementById("chatBox");
+            const messageDiv = document.createElement("div");
+
+            messageDiv.className = sender === "user"
+                ? "message user-message"
+                : "message bot-message";
+
+            const role = sender === "user" ? "👤 You" : "🤖 Assistant";
+
+            messageDiv.innerHTML = `
+                <div class="message-role">${role}</div>
+                <div class="message-content">${formatMessage(text)}</div>
+            `;
+
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById("userInput");
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            addMessage(message, "user");
+            input.value = "";
+
+            try {
+                const response = await fetch("/query", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        query: message,
+                        session_id: getSessionId()
+                    })
+                });
+
+                const data = await response.json();
+                addMessage(data.answer, "bot");
+            } catch (error) {
+                addMessage("Something went wrong while contacting the server.", "bot");
+            }
+        }
+
+        function sendQuick(text) {
+            document.getElementById("userInput").value = text;
+            sendMessage();
+        }
+
+        function handleKey(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,8 +1,9 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class QueryRequest(BaseModel):
-    query: str = Field(..., min_length=1, description="User question for the RAG system")
+    query: str
+    session_id: str
 
 
 class QueryResponse(BaseModel):
